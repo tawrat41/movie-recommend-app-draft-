@@ -10,6 +10,8 @@ import cv2
 from PIL import Image
 import pandas as pd
 import json
+from datetime import datetime, date
+import matplotlib.pyplot as plt
 
 
 st.set_page_config(
@@ -63,7 +65,7 @@ if 'page_index' not in session_state:
     session_state.page_index = 0
 
 st.sidebar.markdown("<h1>Movie Recommendation System</h1>", unsafe_allow_html=True)
-section = st.sidebar.radio("Steps to follow - ", ["Introduction", "Types", "Content-based", "Visualize", "Step - 2","Training Initiation", "Machine Learning", "Setup the Model", "Training Parameters", "Train", "Re-Train (if required)", "Step - 3","Test", "Improve Accuracy", "Step - 4", "Conclusion"],  index=session_state.page_index)
+section = st.sidebar.radio("Steps to follow - ", ["Introduction", "Types", "Content-based", "Visualize"],  index=session_state.page_index)
 
 
 
@@ -193,3 +195,85 @@ elif section == "Visualize":
     # Display the top movies based on popularity
     top_movies = df.nlargest(num_top_movies, 'popularity')
     st.dataframe(top_movies[column_to_display].reset_index(drop=True))
+
+    st.markdown("""<div class="center"><p>Now let's see do a year-wise analysis of movie releases! Visualize movies between years.     
+    </p></div>""", unsafe_allow_html=True)
+
+    # Convert 'release_date' column to datetime
+    df['release_date'] = pd.to_datetime(df['release_date'], errors='coerce')
+
+
+
+    # Define the layout with columns
+    col1, col2, col3, col4 = st.columns([2, 1, 1, 2])
+
+    with col1:
+        pass
+
+    with col2:
+        start_year = st.date_input('Select starting year:', min_value=df['release_date'].min().date(), max_value=df['release_date'].max().date(), value=df['release_date'].min().date())
+
+    with col3:
+        end_year = st.date_input('Select ending year:', min_value=df['release_date'].min().date(), max_value=df['release_date'].max().date(), value=df['release_date'].max().date())
+
+    with col4:
+        pass
+
+    filtered_df = df[(df['release_date'].dt.date >= start_year) & (df['release_date'].dt.date <= end_year)]
+
+    # st.set_option('deprecation.showPyplotGlobalUse', False)
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col1:
+        pass
+    with col2:
+        if not filtered_df.empty:
+            fig, ax = plt.subplots()
+            ax.bar(filtered_df['release_date'].dt.year.value_counts().sort_index().index, filtered_df['release_date'].dt.year.value_counts().sort_index())
+            st.pyplot(fig)  # Display the chart
+        else:
+            st.warning('No movies in the selected date range.')
+    with col3:
+        pass
+
+    st.markdown("""<div class="center"><p>From the above graph, we can easily see which year had the most releases of top-rated movies 
+    If you want to see how the number of top-rated movies varied over the years, you can take a look at the line chart below:</div>""", unsafe_allow_html=True)
+
+    # Group by release year and calculate the average rating
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        pass
+
+    with col2:
+        movies_by_year = df.groupby(df['release_date'].dt.year).size()
+
+        # Create line chart
+        fig, ax = plt.subplots()
+        ax.plot(movies_by_year.index, movies_by_year)
+        ax.set_xlabel('Release Year')
+        ax.set_ylabel('Total Movies Released')
+
+        # Display the line chart in Streamlit
+        st.pyplot(fig)
+    with col3:
+        pass
+
+    st.markdown("""<div class="center"><h3>Can you tell which years made the highest number of top-rated movies?</h3></div>""", unsafe_allow_html=True)
+    col1, col2, col3, col4 = st.columns([2,1,1,2])
+
+
+    with col1:
+        pass
+    with col2:
+        year_range_start = st.number_input('Enter the start year for the range:', min_value=min(df['release_date'].dt.year), max_value=max(df['release_date'].dt.year))
+    with col3:
+        year_range_end = st.number_input('Enter the end year for the range:', min_value=min(df['release_date'].dt.year), max_value=max(df['release_date'].dt.year))
+    with col4:
+        pass
+
+    if st.button("Submit"):
+        if 2000 <= year_range_start <= 2017 and 2000 <= year_range_end <= 2017 and year_range_start <= year_range_end:
+            st.success(f'That\'s correct! The selected year range is {year_range_start}-{year_range_end}.')
+        else:
+            st.warning('Wrong answer! The correct year range is 2000-2017.')
+        
