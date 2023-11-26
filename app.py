@@ -65,7 +65,7 @@ if 'page_index' not in session_state:
     session_state.page_index = 0
 
 st.sidebar.markdown("<h1>Movie Recommendation System</h1>", unsafe_allow_html=True)
-section = st.sidebar.radio("Steps to follow - ", ["Introduction", "Types", "Content-based", "Visualize", "Visualize (Contd)"],  index=session_state.page_index)
+section = st.sidebar.radio("Steps to follow - ", ["Introduction", "Types", "Content-based", "Visualize", "Visualize (Contd)", "How does a Movie Recommendation System Work?"],  index=session_state.page_index)
 
 
 
@@ -279,7 +279,6 @@ elif section == "Visualize":
         
 
 elif section == "Visualize (Contd)":
-
     st.markdown("""<div class="center"><h1>Visualization of Movie Data (Contd)</h1></div>""", unsafe_allow_html=True)
     st.markdown("""<div class="center"><p>Let's look at a pie chart representing the percentage of movies in different languages:</p></div>""", unsafe_allow_html=True)
 
@@ -363,3 +362,34 @@ elif section == "Visualize (Contd)":
         st.write(f'Overview for {selected_movie}:\n{overview}')
     with col3:
         pass
+
+
+elif section == "How does a Movie Recommendation System Work?":
+    st.markdown("""<div class="center"><h1>How does a Movie Recommendation System Work?</h1></div>""", unsafe_allow_html=True)
+    st.markdown("""<div class="center"><p>
+    Data plays a very important role in ML projects, including the movie recommendation system, so it's important to properly understand the dataset. The best way to understand the data is to explore the dataset, just the way you did up till now. </p>
+    <p>Now that we have explored the data, we are ready to start building the Movie Recommendation System! </p>
+    <p>The primary goal of movie recommendation systems is to filter and predict movies that a given user is most likely to want to watch. One way is to filter the dataset based on contents of the movie that the user liked, and then find other movies with similar content. We can get a good idea about the contents of a movie from its overview (description). </p>
+    <p>However, as we just saw, the overview is in an unstructured text format. However, the computer needs the data in a structured format in order to work with it. So, we need to transform this textual data into numerical representations, which can be used to train the system. This process of converting text into numbers is called vectorization. </p></div>""", unsafe_allow_html=True)
+
+    st.markdown("""<div class="center"><h2>Vectorization</h2></div>""", unsafe_allow_html=True)
+
+    st.markdown("""<div class="center"><p>
+    Vectorization is the process of mapping words into vectors of real numbers. In this case, a vector is a sort of list of numbers used to represent a given text.  </p>
+    <ol>Once we get the text data converted into vectors, we can easily use this to:
+        <li>Find similar or related words. </li>
+        <li>Find relationships between words.</li>
+        <li>Measure how similar two words are.</li>
+    </ol>
+    <p>The Bag of Words model is one such way that helps convert words in a document to numerical representations. It provides a way to extract the important features of a text document so that it is useful for the training.  How does it do this? By specifying the number of times each unique word appears in a document. </p>
+    <p>Here’s how a bag of words is created. Say you have a document that has a single sentence:</p>
+    <p>We first need to tokenize the document (separate the sentence into individual words). After tokenization, each word is called a token.</p>
+    <p>This document can be tokenized into the following bag of words, along with how many times each word appears in the document:</p>                    
+    </div>""", unsafe_allow_html=True)
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.image(Image.open('media/2023-11-09_20-44-42 1.jpg'))
+    with col2:
+        st.image(Image.open('media/61c9a99f4e761d37f3a5cf5f_bag of words.png'))
