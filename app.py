@@ -35,7 +35,7 @@ st.markdown("""
         p{
             text-align: justify;
         }        
-        h1, h2, h3{
+        h1, h2, h3, h4, h5{
             text-align:center;
         }
         .stImage{
@@ -65,7 +65,7 @@ if 'page_index' not in session_state:
     session_state.page_index = 0
 
 st.sidebar.markdown("<h1>Movie Recommendation System</h1>", unsafe_allow_html=True)
-section = st.sidebar.radio("Steps to follow - ", ["Introduction", "Types", "Content-based", "Visualize"],  index=session_state.page_index)
+section = st.sidebar.radio("Steps to follow - ", ["Introduction", "Types", "Content-based", "Visualize", "Visualize (Contd)"],  index=session_state.page_index)
 
 
 
@@ -113,7 +113,7 @@ elif section == "Types":
         """, unsafe_allow_html=True)
 
 
-    st.markdown('<div class="center"><h3>Content-Based Filtering</h3></div>', unsafe_allow_html=True)
+    st.markdown('<div class="center"><h3>Content-Based Filtering</h 3></div>', unsafe_allow_html=True)
     col1, col2 = st.columns(2)
     with col1:
         st.markdown("""<div><p>A Content-based recommender system filters items according to the content. It works on the principle that if a user likes one item, then he / she must like other items that are similar to it.
@@ -277,3 +277,89 @@ elif section == "Visualize":
         else:
             st.warning('Wrong answer! The correct year range is 2000-2017.')
         
+
+elif section == "Visualize (Contd)":
+
+    st.markdown("""<div class="center"><h1>Visualization of Movie Data (Contd)</h1></div>""", unsafe_allow_html=True)
+    st.markdown("""<div class="center"><p>Let's look at a pie chart representing the percentage of movies in different languages:</p></div>""", unsafe_allow_html=True)
+
+
+    col1, col2 = st.columns(2)
+    with col1:
+        df = pd.read_csv("tmdb_5000_movies.csv")
+
+        # Count the number of movies in each language
+        language_counts = df['original_language'].value_counts()
+
+        # Consider only the top 5 languages and group the rest as "Others"
+        top_languages = language_counts.head(7)
+        other_languages_count = language_counts[7:].sum()
+        top_languages['Others'] = other_languages_count
+
+        # Create a pie chart with adjusted label size
+        fig, ax = plt.subplots()
+        ax.pie(top_languages, labels=top_languages.index, startangle=0, autopct='', textprops={'fontsize': 6}, labeldistance=1.1)
+        ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+
+
+        # Display the pie chart in Streamlit
+        st.pyplot(fig)
+    
+    with col2:
+        st.markdown("""<div class="center"><p>From the above pie chart, which language movies have the largest share in the dataset? (top 3)
+                    </p></div>""", unsafe_allow_html=True)
+        
+        # Allow users to input their guesses for the top 3 languages
+        guess1 = st.selectbox('Guess 1:', [''] + list(top_languages.index), key='guess1')
+        if guess1 == 'en':
+                st.image(Image.open('media/correct.png').resize((30, 30)), use_column_width=False)
+        else:
+            st.image(Image.open('media/cross.png').resize((30, 30)), use_column_width=False)
+
+        guess2 = st.selectbox('Guess 2:', [''] + list(top_languages.index), key='guess2')
+        if guess1 == 'en':
+                st.image(Image.open('media/correct.png').resize((30, 30)), use_column_width=False)
+        else:
+            st.image(Image.open('media/cross.png').resize((30, 30)), use_column_width=False)
+
+        guess3 = st.selectbox('Guess 3:', [''] + list(top_languages.index), key='guess3')
+        if guess1 == 'en':
+                st.image(Image.open('media/correct.png').resize((30, 30)), use_column_width=False)
+        else:
+            st.image(Image.open('media/cross.png').resize((30, 30)), use_column_width=False)
+
+
+    st.markdown("""<div class="center"><h5>You can also view names of movies from a given genre. Select a genre from dropdown to see which movies match it: </h5></div>""", unsafe_allow_html=True)
+
+    df['genres'] = df['genres'].apply(lambda x: [genre['name'] for genre in json.loads(x)])
+    # Allow users to select a genre
+    
+
+    col1, col2, col3 = st.columns([2,1,2])
+    with col1:
+        pass
+    with col2:
+        all_genres = set(genre for genres_list in df['genres'] for genre in genres_list)
+        selected_genre = st.selectbox('Select a genre:', [''] + list(all_genres))
+    # Display the DataFrame with the selected genre
+    if selected_genre:
+        filtered_df = df[df['genres'].apply(lambda genres: selected_genre in genres)]
+        st.dataframe(filtered_df[['id', 'title', 'genres', 'original_language', 'overview', 'popularity', 'release_date', 'vote_average', 'vote_count']].head())
+    with col3:
+        pass
+
+    st.markdown("""<div class="center"><h5>Finally, you can see the summary of any movie from the list. Select a movie title to view its summary:</h5></div>""", unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns([2,1,2])
+    with col1:
+        pass
+    with col2:
+        # Allow users to select a movie
+        selected_movie = st.selectbox('Select a movie:', [''] + list(df['title']))
+
+    # Display the 'overview' of the selected movie
+    if selected_movie:
+        overview = df[df['title'] == selected_movie]['overview'].iloc[0]
+        st.write(f'Overview for {selected_movie}:\n{overview}')
+    with col3:
+        pass
