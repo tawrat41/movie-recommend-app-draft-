@@ -14,6 +14,7 @@ from datetime import datetime, date
 import matplotlib.pyplot as plt
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 from collections import Counter
 import pandas as pd
 
@@ -72,7 +73,7 @@ if 'page_index' not in session_state:
     session_state.page_index = 0
 
 st.sidebar.markdown("<h1>Movie Recommendation System</h1>", unsafe_allow_html=True)
-section = st.sidebar.radio("Steps to follow - ", ["Introduction", "Types", "Content-based", "Visualize", "Visualize (Contd)", "How does a Movie Recommendation System Work?", "TF-IDF", "Inverse Document Frequency (IDF)"],  index=session_state.page_index)
+section = st.sidebar.radio("Steps to follow - ", ["Introduction", "Types", "Content-based", "Visualize", "Visualize (Contd)", "How does a Movie Recommendation System Work?", "Term Frequency (TF)", "Inverse Document Frequency (IDF)", "TF-IDF", "Cosine Similarity", "Get Recommendation"],  index=session_state.page_index)
 
 
 
@@ -403,7 +404,7 @@ elif section == "How does a Movie Recommendation System Work?":
 
 
 
-elif section == "TF-IDF":
+elif section == "Term Frequency (TF)":
     st.markdown("""<div class="center"><h1>TF-IDF</h1></div>""", unsafe_allow_html=True)
     st.markdown("""<div class="center"><p>
     Next, we need to use the Bag of Words to create two very useful feature vectors that can help us understand the text in each movie's overview.  </p>
@@ -579,3 +580,147 @@ elif section == "Inverse Document Frequency (IDF)":
         check_idf("Mary", float(idf_mary))
     if check_chocolate_button:
         check_idf("chocolate", float(idf_chocolate))
+
+
+elif section == "TF-IDF":
+    st.markdown("""<div class="center"><h1>TF-IDF</h1></div>""", unsafe_allow_html=True)
+    st.markdown("""<div class="center"><p>
+    The TF-IDF value is obtained by simply multiplying the TF with the IDF value of a given word. The TF-IDF score, in this way, allows us to find the frequency of a word occurring in a document, down-weighted by the number of documents in which it occurs, thereby reducing the importance of words that occur too frequently in all the movie overviews</p>
+                <p>This means, the TF-IDF score for vanilla (in our previous example) will be 2/5 * 2/1 = 0.8</p>
+                <p>Can you calculate the TF-IDF score for the following words?</p></div>""", unsafe_allow_html=True)
+    
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.write("chocolate")
+        st.write("likes")
+        st.write("John")
+
+    with col2:
+        tf_idf_chocolate = st.text_input('TF-IDF (chocolate):', '0.0')
+        if st.button("Check for chocolate"):
+            if tf_idf_chocolate == "0.5":
+                st.image(Image.open('media/correct.png').resize((30, 30)), use_column_width=False)
+            else:
+                st.image(Image.open('media/cross.png').resize((30, 30)), use_column_width=False)
+        tf_idf_likes = st.text_input('TF-IDF (likes):', '0.0')
+        if st.button("Check for likes"):
+            if tf_idf_likes == "0.4":
+                st.image(Image.open('media/correct.png').resize((30, 30)), use_column_width=False)
+            else:
+                st.image(Image.open('media/cross.png').resize((30, 30)), use_column_width=False)
+        tf_idf_John = st.text_input('TF-IDF (John):', '0.0')
+        if st.button("Check for John"):
+            if tf_idf_John == "0.4":
+                st.image(Image.open('media/correct.png').resize((30, 30)), use_column_width=False)
+            else:
+                st.image(Image.open('media/cross.png').resize((30, 30)), use_column_width=False)
+
+
+    # vectorization ------------------------------------------------------------------
+    # Load the dataset
+    df = pd.read_csv("tmdb_5000_movies.csv")
+
+    # Create a TF-IDF vectorizer
+    vectorizer = TfidfVectorizer(stop_words='english')
+
+    # Fit and transform the "overview" column
+    tfidf_matrix = vectorizer.fit_transform(df['overview'].fillna(''))
+
+    # Get feature names (words) from the vectorizer
+    feature_names = vectorizer.get_feature_names_out()
+
+    # Streamlit app
+    if st.button("Vectorize"):
+        st.write("Top 10 words with highest TF-IDF scores:")
+        
+        for i, movie_overview in enumerate(df['overview'].fillna('')):
+            # Get TF-IDF scores for the current movie overview
+            tfidf_scores = tfidf_matrix[i, :].toarray().flatten()
+
+            # Get indices of the top 10 TF-IDF scores
+            top_indices = tfidf_scores.argsort()[-10:][::-1]
+
+            # Get the corresponding words
+            top_words = [feature_names[idx] for idx in top_indices]
+
+            # Display the results
+            st.write(f"Movie {i+1}: {', '.join(top_words)}")
+
+        # Display a message indicating that the vectorization is complete
+        st.success("Vectorization complete!")
+
+
+
+elif section == "Cosine Similarity":
+    st.markdown("""<div class="center"><h1>Cosine Similarity</h1></div>""", unsafe_allow_html=True)
+    st.markdown("""<div class="center"><p>
+    Now that we have the TF-IDF matrix of movie overviews in the dataset, the machine can calculate similarities between every pair of overviews.There are various ways to calculate similarities between vectors. In this case, we will use the cosine-similarity score, because it does not depend on the size of the documents and is easy and fast to calculate. 
+    <p>Click the button below to calculate the cosine similarities between every pair of overviews</p></div>""", unsafe_allow_html=True)
+
+    # Load the dataset
+    df = pd.read_csv("tmdb_5000_movies.csv")
+
+    # Create a TF-IDF vectorizer
+    vectorizer = TfidfVectorizer(stop_words='english')
+
+    # Fit and transform the "overview" column
+    tfidf_matrix = vectorizer.fit_transform(df['overview'].fillna(''))
+
+    # Calculate the cosine similarity matrix
+    cosine_sim_matrix = cosine_similarity(tfidf_matrix, tfidf_matrix)
+
+    # Streamlit app
+    # @st.cache_data(persist="disk")
+    if st.button("Calculate Cosine Similarity Matrix"):
+        # Display the cosine similarity matrix for the top 10 movies
+        st.write("Cosine Similarity Matrix (Top 10 movies):")
+        
+        # Select the top 10 movies
+        top_10_movies = df.head(10)
+
+        # # Display the movie titles
+        # st.write("Movie Titles:")
+        # st.write(top_10_movies['title'].tolist())
+
+        # Display the cosine similarity matrix for the top 10 movies
+        st.write("Cosine Similarity Matrix:")
+        st.dataframe(pd.DataFrame(cosine_sim_matrix[:10, :10], columns=top_10_movies['title'], index=top_10_movies['title']))
+
+        # if st.button("lets check"):
+
+
+        st.markdown("""<div class="center"><h2>View the movies with highest cosine similarity</h2></div>""", unsafe_allow_html=True)
+        st.markdown("""<div class="center"><p>
+        Let's use this cosine-similarity matrix to find the movies most similar to the following movie:</div>""", unsafe_allow_html=True)
+
+
+        # Movie Recommendation based on user selection
+        selected_movie = st.selectbox("Select a movie:", [''] + df['title'].tolist())
+
+        if selected_movie:
+            # Find the index of the selected movie in the DataFrame
+            selected_movie_index = df[df['title'] == selected_movie].index[0]
+
+            # Calculate cosine similarity for the selected movie
+            movie_cosine_similarities = cosine_sim_matrix[selected_movie_index]
+
+            # Get the indices of the top 5 most similar movies
+            top_similar_movies_indices = movie_cosine_similarities.argsort()[-6:-1][::-1]
+
+            # Get the details of the top 5 similar movies
+            top_similar_movies = df.iloc[top_similar_movies_indices]
+
+            # Display the results
+            st.write(f"Top 5 movies similar to '{selected_movie}':")
+            st.table(top_similar_movies[['title', 'overview']])
+
+        
+        st.markdown("""<div class="center"><h5>Finally let's save this similarity table, so that we can use it in our recommendation system.</h5></div>""", unsafe_allow_html=True)
+
+        if st.button("Save the similarity table and run"):
+            st.markdown("""<div class="center"><h4>Saved!!</h4></div>""", unsafe_allow_html=True)
+
+
+
+elif section == "Get Recommendation":
+    
