@@ -12,6 +12,13 @@ import pandas as pd
 import json
 from datetime import datetime, date
 import matplotlib.pyplot as plt
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import CountVectorizer
+from collections import Counter
+import pandas as pd
+
+
+
 
 
 st.set_page_config(
@@ -65,7 +72,7 @@ if 'page_index' not in session_state:
     session_state.page_index = 0
 
 st.sidebar.markdown("<h1>Movie Recommendation System</h1>", unsafe_allow_html=True)
-section = st.sidebar.radio("Steps to follow - ", ["Introduction", "Types", "Content-based", "Visualize", "Visualize (Contd)", "How does a Movie Recommendation System Work?"],  index=session_state.page_index)
+section = st.sidebar.radio("Steps to follow - ", ["Introduction", "Types", "Content-based", "Visualize", "Visualize (Contd)", "How does a Movie Recommendation System Work?", "TF-IDF", "Inverse Document Frequency (IDF)"],  index=session_state.page_index)
 
 
 
@@ -393,3 +400,182 @@ elif section == "How does a Movie Recommendation System Work?":
         st.image(Image.open('media/2023-11-09_20-44-42 1.jpg'))
     with col2:
         st.image(Image.open('media/61c9a99f4e761d37f3a5cf5f_bag of words.png'))
+
+
+
+elif section == "TF-IDF":
+    st.markdown("""<div class="center"><h1>TF-IDF</h1></div>""", unsafe_allow_html=True)
+    st.markdown("""<div class="center"><p>
+    Next, we need to use the Bag of Words to create two very useful feature vectors that can help us understand the text in each movie's overview.  </p>
+        <ul>
+                <li>Term Frequency (TF)</li>
+                <li>Inverse Document Frequency (IDF)</li>
+            </ul>
+        </div>""", unsafe_allow_html=True)
+    st.markdown("""<div class="center"><h2>Term Frequency (TF)</h2></div>""", unsafe_allow_html=True)
+
+
+    st.markdown("""<div class="center"><p>
+    Term Frequency (TF) is an important indicator of how dominant a word is in the document. It is calculated by dividing the frequency of a given word by the length of the document. </p>
+        </div>""", unsafe_allow_html=True)
+
+    # Display the equation using LaTeX
+    st.latex(f'Term\\ Frequency\\ TF(t)\\ on\\ document\\ d1 = \\frac{{Number\\ of\\ times\\ t\\ appears\\ in\\ document\\ d1}}{{Total\\ Number\\ of\\ unique\\ tokens\\ in\\ the\\ d1}}')
+
+    col1, col2 = st.columns(2)
+    df = pd.read_csv("tmdb_5000_movies.csv")
+    # Find the row corresponding to the movie "Godfather"
+    # Display the overview of "Godfather"
+    godfather_row = df[df['title'] == 'The Godfather']
+    godfather_overview = godfather_row['overview'].iloc[0]
+
+    with col1:
+        # Tokenize the overview into unique words
+        vectorizer = CountVectorizer()
+        overview_tokens = vectorizer.build_analyzer()(godfather_overview)
+
+        # Create a dropdown menu with every word
+        selected_word = st.selectbox('Select a word:', [''] + list(set(overview_tokens)))
+
+        # Display the Term Frequency (TF) based on the provided formula
+        if selected_word:
+            total_terms = len(overview_tokens)
+            term_count = overview_tokens.count(selected_word)
+            unique_term_count = len(set(overview_tokens))
+            term_frequency = term_count / unique_term_count
+
+            st.write(f'Term Frequency (TF) calculation for "{selected_word}":')
+            st.write(f'Total terms in the document: {total_terms}')
+            st.write(f'Term count for "{selected_word}": {term_count}')
+            st.write(f'Unique terms in the document: {unique_term_count}')
+            st.write(f'Term Frequency (TF) for "{selected_word}": {term_frequency:.4f}')
+
+    with col2: 
+
+        st.write(f"Overview of 'Godfather': {godfather_overview}")
+
+    st.markdown("""<div class="center"><h5>
+    The higher the TF of a word, the more dominant the word is in the given document.</h5>
+        </div>""", unsafe_allow_html=True)
+    st.markdown("""<div class="center"><p> Let's do a small exercise to see if you understand the concept of Term Frequency. Let's say you have the following text in Document1:</p>
+        <p>John likes vanilla. Mary likes vanilla too.</p>
+        <p>Can you calculate the following Term Frequencies?</p>
+ </div>""", unsafe_allow_html=True)
+    
+    # Given sentence
+    sentence = "John likes vanilla. Mary likes vanilla too."
+
+    # Tokenize the sentence into words
+    words = sentence.lower().split()
+
+    # Create input fields for user to input TF values
+    tf_likes = st.text_input('TF (likes):', key='tf_likes', value='0.0')
+
+    # Create a button to check correctness for "likes"
+    check_likes_button = st.button('Check TF for "likes"', key='check_likes_button')
+
+    # Display correctness result for "likes"
+    if check_likes_button:
+        term_count_likes = words.count('likes')
+        unique_terms_likes = len(set(words))
+        term_frequency_likes = term_count_likes / unique_terms_likes if unique_terms_likes != 0 else 0
+
+        correct_likes = float(tf_likes) == term_frequency_likes
+        st.write(f'Your TF value for "likes" is {"correct!" if correct_likes else "incorrect."}')
+
+    # Repeat the process for other terms (vanilla, John)
+    # Create input fields for user to input TF values
+    tf_vanilla = st.text_input('TF (vanilla):', key='tf_vanilla', value='0.0')
+    # Create a button to check correctness for "vanilla"
+    check_vanilla_button = st.button('Check TF for "vanilla"', key='check_vanilla_button')
+    # Display correctness result for "vanilla"
+    if check_vanilla_button:
+        term_count_vanilla = words.count('vanilla')
+        unique_terms_vanilla = len(set(words))
+        term_frequency_vanilla = term_count_vanilla / unique_terms_vanilla if unique_terms_vanilla != 0 else 0
+
+        correct_vanilla = float(tf_vanilla) == term_frequency_vanilla
+        st.write(f'Your TF value for "vanilla" is {"correct!" if correct_vanilla else "incorrect."}')
+
+    # Repeat the process for other terms (John)
+    # Create input fields for user to input TF values
+    tf_john = st.text_input('TF (John):', key='tf_john', value='0.0')
+    # Create a button to check correctness for "John"
+    check_john_button = st.button('Check TF for "John"', key='check_john_button')
+    # Display correctness result for "John"
+    if check_john_button:
+        term_count_john = words.count('john')
+        unique_terms_john = len(set(words))
+        term_frequency_john = term_count_john / unique_terms_john if unique_terms_john != 0 else 0
+
+        correct_john = float(tf_john) == term_frequency_john
+        st.write(f'Your TF value for "John" is {"correct!" if correct_john else "incorrect."}')
+
+
+
+elif section == "Inverse Document Frequency (IDF)":
+    st.markdown("""<div class="center"><h1>Inverse Document Frequency (IDF)</h1></div>""", unsafe_allow_html=True)
+    st.markdown("""<div class="center"><p>
+    The Inverse Document Frequency (IDF) indicates how important a word is in the whole set of documents. It is calculated by dividing the total number of documents by the number of documents that contain a given word.</p></div>""", unsafe_allow_html=True)
+
+    # Display the equation using LaTeX
+    st.latex(f'Inverse\\ Documentt\\ Frequency\\ IDF(t)\\ = \\frac{{Total \\ Number \\ of \\ Documents}}{{Number \\ of \\ Docments \\ ccontaining \\ the \\ token \\ t}}')
+
+    st.markdown("""<div class="center"><p>
+    For example, say you have a document (d1) that has the following text: <p>
+    <p>John likes vanilla. Mary likes vanilla too. <p>
+    <p>And another document (d2) that has the following text:<p>
+    <p>Mary also likes chocolate.<p> 
+    <p>Then IDF("vanilla") will be 2/1 = 1 (Since there are 2 documents and only the first document contains the token "vanilla"<p>
+    <p>Can you calculate the Inverse Document Frequency for the following words?</p></div>""", unsafe_allow_html=True)
+
+    # Sample document collection
+    documents = [
+        "John likes vanilla. Mary likes vanilla too.",
+        "Mary also likes chocolate. ",
+    ]
+
+    # Create a DataFrame with documents
+    df = pd.DataFrame({"Document": documents})
+
+    # Create a set of all unique words in the document collection
+    all_words = set(word.lower() for sentence in documents for word in sentence.split())
+
+    # Calculate IDF values
+    idf_values = {word: len(documents) / (sum(word.lower() in sentence for sentence in documents) + 1) for word in all_words}
+
+    # Create a DataFrame for IDF values
+    idf_df = pd.DataFrame({"Term": list(idf_values.keys()), "IDF": list(idf_values.values())})
+
+    # Streamlit app
+    st.dataframe(idf_df)
+
+    # Input fields for user to input IDF values
+    idf_likes = st.text_input('IDF (likes):', '0.0')
+    idf_mary = st.text_input('IDF (Mary):', '0.0')
+    idf_chocolate = st.text_input('IDF (chocolate):', '0.0')
+
+    # Check buttons to validate IDF inputs
+    check_likes_button = st.button('Check IDF for "likes"')
+    check_mary_button = st.button('Check IDF for "Mary"')
+    check_chocolate_button = st.button('Check IDF for "chocolate"')
+
+    # Validate IDF inputs and display correctness result
+    def check_idf(term, user_idf):
+        try:
+            # Look up IDF value for the term in the DataFrame
+            actual_idf = idf_df.loc[idf_df['Term'] == term.lower(), 'IDF'].values[0]
+
+            # Check correctness and display result
+            correct_idf = user_idf == actual_idf
+            st.write(f'Your IDF value for "{term}" is {"correct!" if correct_idf else "incorrect."}')
+
+        except IndexError:
+            st.write(f'The term "{term}" is not present in the document collection.')
+
+    if check_likes_button:
+        check_idf("likes", float(idf_likes))
+    if check_mary_button:
+        check_idf("Mary", float(idf_mary))
+    if check_chocolate_button:
+        check_idf("chocolate", float(idf_chocolate))
