@@ -17,10 +17,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from collections import Counter
 import pandas as pd
-
-
-
-
+import requests
 
 st.set_page_config(
     page_icon="",
@@ -724,3 +721,81 @@ elif section == "Cosine Similarity":
 
 elif section == "Get Recommendation":
     
+    st.markdown("""<div class="center"><h1>Movie Recommendation System</h1></div>""", unsafe_allow_html=True)
+    # Function to fetch poster URL for a movie
+    def fetch_poster(movie_id):
+        url = "https://api.themoviedb.org/3/movie/{}?api_key=c7ec19ffdd3279641fb606d19ceb9bb1&language=en-US".format(movie_id)
+        data = requests.get(url).json()
+        poster_path = data['poster_path']
+        full_path = "https://image.tmdb.org/t/p/w500/" + poster_path
+        return full_path
+
+    # Load the dataset
+    df = pd.read_csv("tmdb_5000_movies.csv")
+
+    # Create a TF-IDF vectorizer
+    vectorizer = TfidfVectorizer(stop_words='english')
+
+    # Fit and transform the "overview" column
+    tfidf_matrix = vectorizer.fit_transform(df['overview'].fillna(''))
+
+    # Calculate the cosine similarity matrix
+    cosine_sim_matrix = cosine_similarity(tfidf_matrix, tfidf_matrix)
+
+    # Function to calculate the cosine similarity matrix
+    def calculate_cosine_similarity_matrix():
+        # Select the top 10 movies
+        top_10_movies = df.head(10)
+
+        # Display the movie titles
+        st.write("Movie Titles:")
+        st.write(top_10_movies['title'].tolist())
+
+        # Display the cosine similarity matrix for the top 10 movies
+        st.dataframe(pd.DataFrame(cosine_sim_matrix[:10, :10], columns=top_10_movies['title'], index=top_10_movies['title']))
+
+    # Initialize session state
+    if 'show_content' not in st.session_state:
+        st.session_state.show_content = False
+
+    # Checkbox to control content visibility
+    # show_content = st.checkbox("Show Movie Recommendation", st.session_state.show_content)
+
+    # Calculate Cosine Similarity Matrix button
+    # if st.button("Calculate Cosine Similarity Matrix"):
+    #     calculate_cosine_similarity_matrix()
+    #     st.session_state.show_content = True
+
+    # Movie Recommendation based on user selection
+    # if show_content:
+    selected_movie = st.selectbox("Select a movie:", [''] + df['title'].tolist())
+
+    if st.button("Get Recommendation") and selected_movie:
+        # Find the index of the selected movie in the DataFrame
+        selected_movie_index = df[df['title'] == selected_movie].index[0]
+
+        # Calculate cosine similarity for the selected movie
+        movie_cosine_similarities = cosine_sim_matrix[selected_movie_index]
+
+        # Get the indices of the top 5 most similar movies
+        top_similar_movies_indices = movie_cosine_similarities.argsort()[-6:-1][::-1]
+
+        # Get the details of the top 5 similar movies
+        top_similar_movies = df.iloc[top_similar_movies_indices]
+
+        # Display the results
+        st.markdown("""<div class="center"><h2>Movie Recommendations</h2></div>""", unsafe_allow_html=True)
+
+        # Create columns for each recommended movie
+        columns = st.columns(len(top_similar_movies))
+
+        for index, (col, (_, row)) in enumerate(zip(columns, top_similar_movies.iterrows())):
+            # Fetch poster URL for the recommended movie
+            poster_url = fetch_poster(row['id'])
+
+            # Display the movie name and poster in one column
+            with col:
+                st.image(poster_url, caption=row['title'], use_column_width=True)
+                st.write(f"### {row['title']}")
+                st.write(f"**Overview:** {row['overview']}")
+                st.write('---')
