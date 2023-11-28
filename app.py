@@ -40,8 +40,17 @@ st.markdown("""
                 text-align:center;
                 
             }
+            h1{
+                color: #03045e;
+            }
             h2, h3, h4, h5, h6{
                 margin: 20px 0px 5px 0px;
+            }
+            h2{
+                color: #023e8a;
+            }
+            h3, h4, h5, h6{
+                color: #0096c7;
             }
             .stImage image{
                 margin-top: 50px;
