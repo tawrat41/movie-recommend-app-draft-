@@ -87,6 +87,7 @@ st.markdown("""
                 font-weight: bold;
             }
             .highlighted-container{
+                color: black;
                 text-align: center;
                 margin: 30px 150px;
                 padding: 10px;
@@ -96,7 +97,7 @@ st.markdown("""
             }
             .highlighted-container:hover{
                 transform: scale(1.1);
-                background-color: #48cae4;
+                background-color: #03045e;
             }
             # span{
             #     font-size: 1.4rem;
