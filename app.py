@@ -51,10 +51,12 @@ st.markdown("""
                 padding-top: 50px;
             }
             .stButton button{
+                color: #03045e;
                 display: block;
                 margin-left: auto;
                 margin-right: auto;
                 margin-top: 29px;
+                border: 2px solid #03045e;
             }
             .body-text{
                 margin: 10px;
