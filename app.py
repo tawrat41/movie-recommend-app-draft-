@@ -1,14 +1,8 @@
 import streamlit as st  
-from tensorflow.keras.applications.resnet50 import preprocess_input, ResNet50
-from tensorflow.keras.layers import GlobalAveragePooling2D, Dense
-from tensorflow.keras.models import Model
-from tensorflow.keras.preprocessing import image
 import numpy as np
-import os
-import time
-import cv2
 from PIL import Image
 import pandas as pd
+import plotly.express as px
 import json
 from datetime import datetime, date
 import matplotlib.pyplot as plt
@@ -350,38 +344,64 @@ elif section == "Visualize (Contd)":
         other_languages_count = language_counts[7:].sum()
         top_languages['Others'] = other_languages_count
 
-        # Create a pie chart with adjusted label size
-        fig, ax = plt.subplots()
-        ax.pie(top_languages, labels=top_languages.index, startangle=0, autopct='', textprops={'fontsize': 5}, labeldistance=1.1)
-        ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+        top_languages['en'] *= 0.4 
+        # Define custom colors
+        custom_colors = {'en': 'blue', 'es': 'cyan', 'fr': 'royalblue', 'zh': 'darkblue', 'de': 'blue', 'hi': 'lightblue', 'ja': 'steelblue', 'Others': 'darkslategray'}
 
+        # Create a Pie chart with adjusted label size and custom colors
+        fig = px.pie(top_languages, names=top_languages.index, values=top_languages,
+                    hole=0.0,
+                    color_discrete_map=custom_colors)
 
-        # Display the pie chart in Streamlit
-        st.pyplot(fig)
+        # Remove percentage and label names from the chart
+        fig.update_traces(textinfo='none')
+
+        # Adjust layout to increase font size and center-align the legend
+        fig.update_layout(
+            legend=dict(
+                orientation="h",
+                yanchor="bottom",
+                y=1.1,
+                xanchor="center",  # Center-align the legend
+                x=0.5,             # Center-align the legend
+                font=dict(size=12)  # Increase font size of the legend
+            ),
+        )
+
+        # Map short-form language codes to full forms
+        language_mapping = {'en': 'English', 'es': 'Spanish', 'fr': 'French', 'zh': 'Chinese', 'de': 'German', 'hi': 'Hindi', 'ja': 'Japanese', 'Others': 'Others'}
+        fig.update_layout(legend_title_text='')  # Remove legend title
+
+        # Replace short-form labels with full forms
+        fig.for_each_trace(lambda t: t.update(labels=[language_mapping.get(label, label) for label in t.labels]))
+
+        # Display the chart using st.plotly_chart
+        st.plotly_chart(fig)
+
     
     with col2:
-        st.markdown("""<div class="center"><p>From the above pie chart, which language movies have the largest share in the dataset? (top 3)
-                    </p></div>""", unsafe_allow_html=True)
-        
         # Allow users to input their guesses for the top 3 languages
-        guess1 = st.selectbox('Guess 1:', [''] + list(top_languages.index), key='guess1')
-        if guess1 == 'en':
-                st.image(Image.open('media/correct.png').resize((30, 30)), use_column_width=False)
+        st.markdown("""<div class="center"><p>From the above pie chart, which language movies have the largest share in the dataset? (top 3)
+                        </p></div>""", unsafe_allow_html=True)
+
+        # Allow users to input their guesses for the top 3 languages
+        guess1 = st.selectbox('Guess 1:', [''] + list(language_mapping.values()), key='guess1')
+        if guess1 == 'English':
+            st.image(Image.open('media/correct.png').resize((30, 30)), use_column_width=False)
         else:
             st.image(Image.open('media/cross.png').resize((30, 30)), use_column_width=False)
 
-        guess2 = st.selectbox('Guess 2:', [''] + list(top_languages.index), key='guess2')
-        if guess2 == 'fr':
-                st.image(Image.open('media/correct.png').resize((30, 30)), use_column_width=False)
+        guess2 = st.selectbox('Guess 2:', [''] + list(language_mapping.values()), key='guess2')
+        if guess2 == 'French':
+            st.image(Image.open('media/correct.png').resize((30, 30)), use_column_width=False)
         else:
             st.image(Image.open('media/cross.png').resize((30, 30)), use_column_width=False)
 
-        guess3 = st.selectbox('Guess 3:', [''] + list(top_languages.index), key='guess3')
-        if guess3 == 'es':
-                st.image(Image.open('media/correct.png').resize((30, 30)), use_column_width=False)
+        guess3 = st.selectbox('Guess 3:', [''] + list(language_mapping.values()), key='guess3')
+        if guess3 == 'Spanish':
+            st.image(Image.open('media/correct.png').resize((30, 30)), use_column_width=False)
         else:
             st.image(Image.open('media/cross.png').resize((30, 30)), use_column_width=False)
-
 
     st.markdown("""<div class="center"><h5>You can also view names of movies from a given genre. Select a genre from dropdown to see which movies match it: </h5></div>""", unsafe_allow_html=True)
 
