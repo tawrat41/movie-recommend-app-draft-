@@ -56,7 +56,11 @@ st.markdown("""
                 margin-left: auto;
                 margin-right: auto;
                 margin-top: 29px;
-                border: 2px solid #03045e;
+                border: 1.5px solid #03045e;
+                transition: transform 0.3s ease-in-out;
+            }
+            .stButton button:hover{
+                transform: scale(1.1);
             }
             .body-text{
                 margin: 10px;
