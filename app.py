@@ -68,9 +68,21 @@ st.markdown("""
             }
             .overview{
                 background-color: #ade8f4; 
+                width: 50%;
                 border-radius: 8px;
                 padding: 20px;
-                margin: 10px 150px;
+                margin: auto;
+                # margin: 10px 150px;
+            }
+            @media screen and (max-width: 992px) {
+                .overview {
+                    width:75%;
+                }
+            }
+            @media screen and (max-width: 600px) {
+                .overview {
+                    width:90%;
+                }
             }
             .overview-2{
                 border: 2px solid #ade8f4; 
@@ -353,7 +365,7 @@ elif section == "Visualize (Contd)":
         top_languages['en'] *= 0.4 
         # Define custom colors
         custom_colors = {'en': 'blue', 'es': 'cyan', 'fr': 'royalblue', 'zh': 'darkblue', 'de': 'blue', 'hi': 'lightblue', 'ja': 'steelblue', 'Others': 'darkslategray'}
-
+        config = {'scrollZoom': True}
         # Create a Pie chart with adjusted label size and custom colors
         fig = px.pie(top_languages, names=top_languages.index, values=top_languages,
                     hole=0.0,
@@ -363,14 +375,17 @@ elif section == "Visualize (Contd)":
         fig.update_traces(textinfo='none')
 
         # Adjust layout to increase font size and center-align the legend
+        # Adjust layout to increase font size and center-align the legend
         fig.update_layout(
+            autosize=True,
+            margin=dict(l=0, r=0, b=0, t=0),  # Adjust margins as needed
             legend=dict(
                 orientation="h",
                 yanchor="bottom",
                 y=1.1,
-                xanchor="center",  # Center-align the legend
-                x=0.5,             # Center-align the legend
-                font=dict(size=12)  # Increase font size of the legend
+                xanchor="center",
+                x=0.5,
+                font=dict(size=12)
             ),
         )
 
@@ -382,7 +397,9 @@ elif section == "Visualize (Contd)":
         fig.for_each_trace(lambda t: t.update(labels=[language_mapping.get(label, label) for label in t.labels]))
 
         # Display the chart using st.plotly_chart
-        st.plotly_chart(fig)
+        st.plotly_chart(fig, use_container_width=True)
+
+
 
     
     with col2:
@@ -436,11 +453,18 @@ elif section == "Visualize (Contd)":
     with col2:
         # Allow users to select a movie
         selected_movie = st.selectbox('Select a movie:', [''] + list(df['title']))
-
-    # Display the 'overview' of the selected movie
     if selected_movie:
-        overview = df[df['title'] == selected_movie]['overview'].iloc[0]
-        st.markdown(f"<div class='overview'><h6>{selected_movie} Summary</h6><p>{overview}</p></div>", unsafe_allow_html=True)
+            overview = df[df['title'] == selected_movie]['overview'].iloc[0]
+            st.markdown(f"<div class='overview'><h6>{selected_movie} Summary</h6><p>{overview}</p></div>", unsafe_allow_html=True)
+    with col3:
+        pass
+
+    col1, col2, col3 = st.columns([1,2,1])
+    with col1: 
+        pass
+    with col2:
+        # Display the 'overview' of the selected movie
+        pass
     with col3:
         pass
 
